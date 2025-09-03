@@ -1,29 +1,17 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Dashboard de Ubidots</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-        h1 {
-            margin-top: 20px;
-        }
-        iframe {
-            width: 90%;
-            height: 80vh;
-            border: none;
-        }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard de Estación</title>
+  <style>
+    html, body { height: 100%; margin: 0; }
+    header { padding: 14px 16px; font: 600 16px system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; border-bottom: 1px solid #e5e7eb; }
+    .frame { width: 100%; height: calc(100vh - 50px); border: 0; display: block; }
+  </style>
 </head>
 <body>
-    <h1>Visualización de Datos</h1>
-    <iframe src="https://stem.ubidots.com/app/dashboards/public/dashboard/pi-FpQY94f9AXjIlFb8gGaff3Ns4nr-_I_o4Qix60zE?navbar=true&contextbar=true&datePicker=true&devicePicker=true&displayTitle=true&refresh=true" allowfullscreen></iframe>
+  <header>Dashboard de Estación</header>
+  <iframe class="frame" src="https://grafana.weatherstation.site/public-dashboards/a21a32f174084ec7a37ea0c1173224c1?from=now-5m&to=now%2B5m&timezone=browser&refresh=5s" allowfullscreen></iframe>
 </body>
 </html>
