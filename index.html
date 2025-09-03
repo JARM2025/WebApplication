@@ -3,16 +3,21 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Dashboard de Estación</title>
+  <title>Weather Station</title>
   <style>
     html, body { height: 100%; margin: 0; }
-    header { padding: 14px 16px; font: 600 16px system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; border-bottom: 1px solid #e5e7eb; }
-    .frame { width: 100%; height: calc(100vh - 50px); border: 0; display: block; }
+    header { padding: 12px 16px; font: 600 16px system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; border-bottom: 1px solid #e5e7eb; }
+    iframe { width: 100%; height: calc(100vh - 48px); border: 0; display: block; }
   </style>
 </head>
 <body>
-  <header>Dashboard de Estación 1</header>
-  <iframe class="frame" src="https://grafana.weatherstation.site/public-dashboards/a21a32f174084ec7a37ea0c1173224c1?from=now-5m&to=now%2B5m&timezone=browser&refresh=5s" allowfullscreen></iframe>
+  <header>Weather Station</header>
+  <!-- Reemplaza el src por TU enlace real:
+       - Para ver TODA la barra nativa (rango/variables):
+         https://grafana.weatherstation.site/d/ID_DEL_DASH/slug?orgId=1
+       - Para un "public dashboard" (enlace con token):
+         https://grafana.weatherstation.site/public-dashboards/TOKEN
+  -->
+  <iframe src="https://grafana.weatherstation.site/public-dashboards/a21a32f174084ec7a37ea0c1173224c1?from=now-5m&to=now%2B5m&timezone=browser&refresh=5s" allowfullscreen></iframe>
 </body>
 </html>
-
