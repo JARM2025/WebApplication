@@ -1,58 +1,284 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Weather Station</title>
+  <title>Dashboards – Weather Station</title>
   <style>
-    html, body { height: 100%; margin: 0; }
-    header { padding: 12px 16px; font: 600 16px system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; border-bottom: 1px solid #e5e7eb; }
+    :root{
+      --bg: #0b0f19;
+      --fg: #e6e9ef;
+      --muted: #9aa4b2;
+      --card: #111727;
+      --accent: #3b82f6;
+      --radius: 16px;
+      --row-h: 420px; /* 🔧 un poco más alto que Compact (360px) */
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%; overflow-x:hidden;}
+    body{
+      margin:0; background:var(--bg); color:var(--fg);
+      font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
+    }
+    header{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:12px 16px; position:sticky; top:0; backdrop-filter:saturate(140%) blur(6px);
+      background:linear-gradient(180deg, rgba(11,15,25,.9), rgba(11,15,25,.6));
+      border-bottom:1px solid rgba(255,255,255,.06);
+      z-index:10;
+    }
+    h1{margin:0; font-size:16px; letter-spacing:.2px}
+    .controls{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+    .btn{
+      appearance:none; border:1px solid rgba(255,255,255,.12); background:var(--card); color:var(--fg);
+      padding:6px 10px; border-radius:8px; cursor:pointer; transition:.2s ease; font-weight:600; font-size:13px;
+    }
+    .btn:hover{border-color:rgba(255,255,255,.25); transform:translateY(-1px)}
 
-    /* Contenedor de los iframes */
-    .dash-grid {
-      height: calc(100vh - 48px); /* 48px ≈ alto del header */
-      display: grid;
-      grid-template-columns: 1fr;   /* móvil: una columna */
-      grid-auto-rows: 1fr;
-      gap: 8px;
-      padding: 8px;
-      box-sizing: border-box;
-    }
-    /* Desktop: dos columnas */
-    @media (min-width: 900px) {
-      .dash-grid { grid-template-columns: 1fr 1fr; }
+    /* ===== Secciones ===== */
+    main{padding:12px}
+    .section{margin-bottom:20px;}
+    .section-title{
+      margin: 8px 0 12px;
+      font-size: 18px;           /* más grande */
+      font-weight: 700;
+      line-height: 1.4;
+      text-align: center;        /* centrado */
+      color: var(--fg);
+      border: none;
     }
 
-    .dash-grid iframe {
-      width: 100%;
-      height: 100%;
-      border: 0;
-      display: block;
-      background: #fff; /* evita parpadeo blanco al cargar */
+    /* ===== Grid interno (2 por fila) ===== */
+    .cards{
+      --cols: 2; --gap: 12px;
+      display:grid;
+      gap:var(--gap);
+      grid-template-columns: repeat(var(--cols), minmax(0,1fr));
+      grid-auto-rows: var(--row-h);
+      max-width: 100%;
     }
+    @media (max-width: 1200px){ .cards{ --cols:1 } }
+
+    /* ===== Tarjetas ===== */
+    .card{
+      background:var(--card);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius);
+      overflow:hidden;
+      display:flex; flex-direction:column;
+      height:100%;
+      position:relative;
+      box-shadow: 0 1px 0 rgba(255,255,255,.03), 0 6px 18px rgba(0,0,0,.3);
+      max-width:100%;
+    }
+    .card-header{
+      display:flex; align-items:center; justify-content:space-between; gap:6px;
+      padding:4px 8px;
+      min-height:28px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0));
+    }
+    .card-title{
+      font-weight:600; font-size:13px; color:var(--fg);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+    .card-actions{display:flex; gap:4px}
+    .icon-btn{
+      background:transparent;
+      border:1px solid rgba(255,255,255,.12);
+      color:var(--fg);
+      border-radius:6px;
+      padding:2px 6px;
+      cursor:pointer;
+      font-size:12px;
+    }
+    .icon-btn:hover{border-color:rgba(255,255,255,.25)}
+
+    .frame-wrap{
+      position:relative; flex:1; height:100%; background:#0a0f1c;
+      max-width:100%;
+      overflow:hidden;
+    }
+    iframe{
+      position:absolute; inset:0; height:100%; border:0; display:block;
+      width: calc(100% + 2px);  /* evita barra horizontal dentro del iframe público */
+      left: -1px;
+    }
+
+    /* ===== Modal Fullscreen ===== */
+    .modal{position:fixed; inset:0; display:none; background:rgba(0,0,0,.8); z-index:99; padding:16px}
+    .modal.open{display:block}
+    .modal-inner{max-width: min(1600px, 100%); margin:0 auto; height:100%; display:flex; flex-direction:column}
+    .modal .frame-wrap{flex:1; height:auto}
+    .modal .card-header{border-bottom:none; background:transparent}
+
+    /* Light mode */
+    .light{ --bg:#f7f8fb; --fg:#0b0f1d; --muted:#536079; --card:#ffffff; }
   </style>
 </head>
 <body>
-  <header>Weather Station</header>
+  <header>
+    <h1>Weather Station · Dashboards</h1>
+    <div class="controls">
+      <button class="btn" id="refresh">Refresh</button>
+      <button class="btn" id="toggleTheme">Theme: Dark</button>
+    </div>
+  </header>
 
-  <section class="dash-grid">
-    <!-- Dashboard 1 -->
-    <iframe
-      src="https://grafana.weatherstation.site/public-dashboards/a21a32f174084ec7a37ea0c1173224c1?from=now-5m&to=now%2B5m&timezone=browser&refresh=5s"
-      allowfullscreen
-      loading="lazy"
-      referrerpolicy="no-referrer"
-      title="Dashboard 1">
-    </iframe>
+  <main id="content"></main>
 
-    <!-- Dashboard 2 (reemplaza el src por tu segundo enlace) -->
-    <iframe
-      src="https://grafana.weatherstation.site/public-dashboards/bb06f02b45c44836a4d832d8d5a26dbe"
-      allowfullscreen
-      loading="lazy"
-      referrerpolicy="no-referrer"
-      title="Dashboard 2">
-    </iframe>
-  </section>
+  <!-- Fullscreen modal -->
+  <div class="modal" id="modal">
+    <div class="modal-inner">
+      <div class="card-header">
+        <div class="card-actions">
+          <button class="icon-btn" id="closeModal">Close ✕</button>
+        </div>
+      </div>
+      <div class="frame-wrap">
+        <iframe id="modalFrame" loading="eager" allowfullscreen></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULT_REFRESH = '10s';
+    const THEME = { dark: 'dark', light: 'light' };
+    let currentTheme = THEME.dark;
+
+    const sections = [
+      {
+        title: 'F Index',
+        panels: [
+          { title: '', src: 'https://grafana.weatherstation.site/public-dashboards/f944c21fd4854d1b976ce9ed94ffda79?from=now-5m&to=now&timezone=browser&refresh=5s' },
+          { title: '', src: 'https://grafana.weatherstation.site/public-dashboards/ec52565c160d4a35b4b9087814e0035a?from=now-5m&to=now%2B5m&timezone=browser&refresh=5s' },
+        ]
+      },
+      {
+        title: 'Sensor 1 (DHT22)',
+        panels: [
+          { title: '', src: 'https://grafana.weatherstation.site/public-dashboards/bb06f02b45c44836a4d832d8d5a26dbe?from=now-5m&to=now&timezone=browser&refresh=5s' },
+          { title: '', src: 'https://grafana.weatherstation.site/public-dashboards/a21a32f174084ec7a37ea0c1173224c1?from=now-5m&to=now%2B5m&timezone=browser&refresh=5s' },
+        ]
+      },
+      {
+        title: 'Sensor 2 (Anemometer)',
+        panels: [
+          { title: '', src: 'https://grafana.weatherstation.site/public-dashboards/25a05a7bbff1474d9481599a1d08dea5?from=now-5m&to=now&timezone=browser&refresh=5s' },
+          { title: '', src: 'https://grafana.weatherstation.site/public-dashboards/2c5ec179e5c34bd8b9d36046f13b2da6?from=now-5m&to=now%2B5m&timezone=browser&refresh=5s' },
+        ]
+      }
+    ];
+
+    const content = document.getElementById('content');
+
+    function ensureParams(urlStr){
+      try{
+        const url = new URL(urlStr);
+        url.searchParams.set('theme', currentTheme);
+        if(!url.searchParams.get('refresh')) url.searchParams.set('refresh', DEFAULT_REFRESH);
+        url.searchParams.set('kiosk', '1');
+        return url.toString();
+      }catch{ return urlStr; }
+    }
+
+    function sectionTpl(sec, idx){
+      const cards = sec.panels.map((p, i) => cardTpl(p, `${idx}_${i}`)).join('');
+      return `
+        <section class="section">
+          <h2 class="section-title">${sec.title}</h2>
+          <div class="cards">
+            ${cards}
+          </div>
+        </section>
+      `;
+    }
+
+    function cardTpl({title, src}, idx){
+      const id = `frame_${idx}_${Math.random().toString(36).slice(2,7)}`;
+      const s = ensureParams(src);
+      const titleHtml = title
+        ? `<div class="card-title" title="${title}">${title}</div>`
+        : `<div class="card-title" style="visibility:hidden;">.</div>`;
+      return `
+        <article class="card" data-index="${idx}">
+          <div class="card-header">
+            ${titleHtml}
+            <div class="card-actions">
+              <button class="icon-btn" data-action="fullscreen" data-src="${s}" data-title="${title || 'Panel'}">⤢</button>
+              <button class="icon-btn" data-action="reload" data-target="#${id}">⟳</button>
+            </div>
+          </div>
+          <div class="frame-wrap">
+            <iframe id="${id}" src="${s}" loading="lazy" referrerpolicy="no-referrer" allowfullscreen scrolling="no"></iframe>
+          </div>
+        </article>
+      `;
+    }
+
+    function render(){
+      const html = sections.map(sectionTpl).join('');
+      content.innerHTML = html;
+    }
+    render();
+
+    // Delegated actions
+    content.addEventListener('click', (e)=>{
+      const btn = e.target.closest('button');
+      if(!btn) return;
+      const act = btn.dataset.action;
+      if(act === 'reload'){
+        const frame = document.querySelector(btn.dataset.target);
+        if(frame){ frame.src = frame.src; }
+      }
+      if(act === 'fullscreen'){
+        openModal(btn.dataset.src, btn.dataset.title);
+      }
+    });
+
+    // Global actions
+    document.getElementById('refresh').addEventListener('click', ()=>{
+      document.querySelectorAll('iframe').forEach(f => f.src = f.src);
+    });
+
+    const toggleBtn = document.getElementById('toggleTheme');
+    toggleBtn.addEventListener('click', ()=>{
+      currentTheme = currentTheme === THEME.dark ? THEME.light : THEME.dark;
+      document.body.classList.toggle('light');
+      toggleBtn.textContent = `Theme: ${currentTheme === THEME.dark ? 'Dark' : 'Light'}`;
+      document.querySelectorAll('iframe').forEach(f => {
+        try{
+          const url = new URL(f.src);
+          url.searchParams.set('theme', currentTheme);
+          url.searchParams.set('kiosk', '1');
+          if(!url.searchParams.get('refresh')) url.searchParams.set('refresh', DEFAULT_REFRESH);
+          f.src = url.toString();
+        }catch(err){}
+      });
+    });
+
+    // Fullscreen modal
+    const modal = document.getElementById('modal');
+    const modalFrame = document.getElementById('modalFrame');
+    const closeBtn = document.getElementById('closeModal');
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e)=>{ if(e.target === modal) closeModal(); });
+
+    function openModal(src){
+      try{
+        const url = new URL(src);
+        url.searchParams.set('refresh', DEFAULT_REFRESH);
+        url.searchParams.set('kiosk', '1');
+        modalFrame.src = url.toString();
+      }catch{ modalFrame.src = src; }
+      modal.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeModal(){
+      modal.classList.remove('open');
+      modalFrame.src = 'about:blank';
+      document.body.style.overflow = '';
+    }
+  </script>
 </body>
 </html>
