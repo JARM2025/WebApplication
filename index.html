@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Weather Station — Dashboards & Summary</title>
+  <title>Weather Station</title>
 
   <!-- Inter to match Grafana -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -10,10 +10,28 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 
   <style>
-    :root { --bg:#0b0f19; --fg:#e6e9ef; --card:#111727; --border:rgba(255,255,255,.12); }
-    body.light { --bg:#f7f8fb; --fg:#0b0f1d; --card:#ffffff; --border:rgba(0,0,0,.15); }
+    :root{
+      --bg:#0b0f19; --fg:#e6e9ef; --card:#111727; --border:rgba(255,255,255,.12);
+      --header-h:64px;
+      /* Tabs (dark) */
+      --tab-bg: rgba(255,255,255,.02);
+      --tab-hover-border: rgba(255,255,255,.35);
+      --tab-selected-bg: rgba(255,255,255,.16);
+      --tab-selected-border: rgba(255,255,255,.55);
+      --tab-selected-fg: var(--fg);
+    }
+    body.light{
+      --bg:#f7f8fb; --fg:#0b0f1d; --card:#ffffff; --border:rgba(0,0,0,.15);
+      /* Tabs (light): stronger visual distinction */
+      --tab-bg: rgba(0,0,0,.05);
+      --tab-hover-border: rgba(0,0,0,.45);
+      --tab-selected-bg: #e8edf6;                 /* noticeable pill */
+      --tab-selected-border: rgba(0,0,0,.55);     /* darker border */
+      --tab-selected-fg: #0b0f1d;                 /* dark text */
+    }
 
     *{ box-sizing:border-box }
+    html, body { height:100%; }
     body{
       margin:0; background:var(--bg); color:var(--fg);
       font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
@@ -29,25 +47,39 @@
     }
     header h1{ margin:0; font-size:18px; font-weight:700; }
     .spacer{ flex:1 1 auto }
+
     .tabs{
-      display:inline-flex; gap:6px; padding:4px; border:1px solid var(--border);
-      border-radius:12px; background:rgba(255,255,255,.02);
+      display:inline-flex; gap:6px; padding:4px;
+      border:1px solid var(--border);
+      border-radius:12px; background:var(--tab-bg);
+      align-items:center;
     }
     .tab{
-      appearance:none; border:0; background:transparent; color:var(--fg);
-      padding:6px 12px; border-radius:8px; font:600 13px "Inter",system-ui,sans-serif; cursor:pointer;
+      appearance:none; border:1px solid var(--border); background:transparent; color:var(--fg);
+      padding:6px 12px; border-radius:10px; font:600 13px "Inter",system-ui,sans-serif; cursor:pointer;
+      transition: border-color .15s ease, background .15s ease, color .15s ease;
     }
-    .tab[aria-selected="true"]{ background:rgba(255,255,255,.08); }
+    .tab:hover{ border-color: var(--tab-hover-border); }
+    .tab[aria-selected="true"]{
+      background: var(--tab-selected-bg);
+      border-color: var(--tab-selected-border);
+      color: var(--tab-selected-fg);
+    }
+    .tab:focus-visible{
+      outline: 2px solid currentColor;
+      outline-offset: 2px;
+    }
+
     .theme-btn{
       appearance:none; border:1px solid var(--border); background:transparent; color:var(--fg);
       border-radius:10px; padding:6px 12px; font:600 13px "Inter",system-ui,sans-serif; cursor:pointer;
-      height:32px;
+      height:32px; transition: border-color .15s ease;
     }
     .theme-btn:hover{ border-color:rgba(100,100,100,.4) }
 
     .wrap{ width:100%; padding:8px 0; }
 
-    /* Section bars (Dashboards) */
+    /* Dashboards (collapsible sections) */
     .sectionbar{
       display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:8px;
       padding:12px 12px 8px; border-bottom:1px solid var(--border); background:var(--card); margin-bottom:4px;
@@ -82,21 +114,36 @@
     .box:fullscreen .box-head{ display:none; }
     .box:fullscreen .frame{ height:100vh; }
 
-    /* Summary cards */
+    /* Summary: full-window 2x2 */
+    .summary-wrap{
+      height: calc(100dvh - var(--header-h)); /* fill viewport minus header */
+      padding: 8px 12px;
+    }
     .summary-grid{
-      display:grid; gap:16px; padding:0 12px;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      display:grid; gap:12px; height:100%;
+      grid-template-columns: 1fr 1fr;        /* 2 columns */
+      grid-template-rows: 1fr 1fr;           /* 2 rows */
     }
     .card{
       border:1px solid var(--border); background:var(--card); border-radius:14px;
       box-shadow:0 1px 0 rgba(255,255,255,.03), 0 6px 18px rgba(0,0,0,.3);
-      overflow:hidden; min-height:160px; display:flex; flex-direction:column;
+      overflow:hidden; display:flex; flex-direction:column; min-height:0;
     }
-    .card-head{ padding:10px 12px; font-weight:600; border-bottom:1px solid var(--border); opacity:.9; }
-    .card-body{ height:220px; }
-    @media (min-width: 1200px){ .card-body{ height:240px; } }
+    /* UPDATED: header layout and fullscreen support for Summary cards */
+    .card-head{
+      padding:8px 10px; font-weight:600; border-bottom:1px solid var(--border); opacity:.9; font-size:13px;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .card-body{ flex:1; min-height:0; }
+    .card-body iframe{ width:100%; height:100%; display:block; }
 
-    /* Hide non-selected tab panels */
+    /* Fullscreen behavior for cards (mirror .box) */
+    .card:fullscreen{ border:none; border-radius:0; height:100vh; background:var(--card); }
+    .card:fullscreen .card-head{ display:none; }
+    .card:fullscreen .card-body{ height:100vh; }
+    .card:fullscreen .card-body iframe{ height:100vh; }
+
+    /* Tab panels visibility */
     [role="tabpanel"]{ display:none; }
     [role="tabpanel"][data-active="true"]{ display:block; }
   </style>
@@ -105,16 +152,19 @@
   <header>
     <h1>Weather Station</h1>
     <div class="spacer"></div>
+
+    <!-- Tabs: Summary first, Dashboards second -->
     <div class="tabs" role="tablist" aria-label="Views">
-      <button class="tab" role="tab" id="tab-dash" aria-controls="panel-dash" aria-selected="true">Dashboards</button>
-      <button class="tab" role="tab" id="tab-summary" aria-controls="panel-summary" aria-selected="false">Summary</button>
+      <button class="tab" role="tab" id="tab-summary" aria-controls="panel-summary" aria-selected="true">Summary</button>
+      <button class="tab" role="tab" id="tab-dash" aria-controls="panel-dash" aria-selected="false">Dashboards</button>
     </div>
+
     <button id="themeToggle" class="theme-btn">🌙 Dark Mode</button>
   </header>
 
-  <main class="wrap">
+  <main>
     <!-- ================= Dashboards panel ================= -->
-    <section id="panel-dash" role="tabpanel" aria-labelledby="tab-dash" data-active="true">
+    <section id="panel-dash" role="tabpanel" aria-labelledby="tab-dash" data-active="false" class="wrap">
       <!-- F Index -->
       <div class="sectionbar" data-target="sec-findex" aria-controls="sec-findex" aria-expanded="true" title="Click to show/hide">
         <div></div><h2>F Index</h2><div></div>
@@ -196,50 +246,72 @@
               <button class="fs-btn" title="Fullscreen">⤢</button>
             </div>
             <div class="frame">
-              <iframe src="https://grafana.weatherstation.site/d/dexan9rr3s3k0b/anemometer-data?orgId=2&theme=dark&from=now-5m&to=now%2B5m&timezone=browser&refresh=5s&viewPanel=1" allowfullscreen></iframe>
+              <iframe src="https://grafana.weatherstation.site/d/dexan9rr3s3k0b/anemometer-data?OrgId=2&theme=dark&from=now-5m&to=now%2B5m&timezone=browser&refresh=5s&viewPanel=1" allowfullscreen></iframe>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ================= Summary panel ================= -->
-    <section id="panel-summary" role="tabpanel" aria-labelledby="tab-summary" data-active="false">
-      <div class="summary-grid">
-        <section class="card">
-          <div class="card-head">F Index — Last Value</div>
-          <div class="card-body">
-            <iframe src="https://grafana.weatherstation.site/d/aexavp9st0d8gf/f-index-values?orgId=2&theme=dark&from=now-10m&to=now&timezone=browser&refresh=10s&viewPanel=1" allowfullscreen></iframe>
-          </div>
-        </section>
+    <!-- ================= Summary panel (default) ================= -->
+    <section id="panel-summary" role="tabpanel" aria-labelledby="tab-summary" data-active="true">
+      <div class="summary-wrap">
+        <div class="summary-grid">
+          <section class="card">
+            <div class="card-head">
+              <span>F Index</span>
+              <button class="fs-btn" title="Fullscreen">⤢</button>
+            </div>
+            <div class="card-body">
+              <iframe src="https://grafana.weatherstation.site/d/aexeli5nf9uyoe/f-index?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&viewPanel=panel-1" allowfullscreen></iframe>
+            </div>
+          </section>
 
-        <section class="card">
-          <div class="card-head">DHT22 — Last Values</div>
-          <div class="card-body">
-            <iframe src="https://grafana.weatherstation.site/d/cewx3uhpyrsowa/dht22-1-values?orgId=2&theme=dark&from=now-10m&to=now&timezone=browser&refresh=10s&viewPanel=1" allowfullscreen></iframe>
-          </div>
-        </section>
+          <section class="card">
+            <div class="card-head">
+              <span>Temperature</span>
+              <button class="fs-btn" title="Fullscreen">⤢</button>
+            </div>
+            <div class="card-body">
+              <iframe src="https://grafana.weatherstation.site/d/dexdt525kcf7kc/temperature?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&viewPanel=1" allowfullscreen></iframe>
+            </div>
+          </section>
 
-        <section class="card">
-          <div class="card-head">Anemometer — Last Value</div>
-          <div class="card-body">
-            <iframe src="https://grafana.weatherstation.site/d/dexaqaus59w5ca/anemometer-values?orgId=2&theme=dark&from=now-10m&to=now&timezone=browser&refresh=10s&viewPanel=1" allowfullscreen></iframe>
-          </div>
-        </section>
+          <section class="card">
+            <div class="card-head">
+              <span>Humidity</span>
+              <button class="fs-btn" title="Fullscreen">⤢</button>
+            </div>
+            <div class="card-body">
+              <iframe src="https://grafana.weatherstation.site/d/dexaqaus59w5ca/anemometer-values?orgId=2&theme=dark&from=now-10m&to=now&timezone=browser&refresh=10s&viewPanel=1" allowfullscreen></iframe>
+            </div>
+          </section>
 
-        <section class="card">
-          <div class="card-head">System Status (optional)</div>
-          <div class="card-body">
-            <!-- Point this to a simple stat panel if/when you create it -->
-            <iframe src="https://grafana.weatherstation.site/d/eexavbf1ivqwwb/f-index-data?orgId=2&theme=dark&from=now-10m&to=now&timezone=browser&refresh=10s&viewPanel=1" allowfullscreen></iframe>
-          </div>
-        </section>
+          <section class="card">
+            <div class="card-head">
+              <span>Wind Speed</span>
+              <button class="fs-btn" title="Fullscreen">⤢</button>
+            </div>
+            <div class="card-body">
+              <!-- Point this to a simple stat panel if/when you create it -->
+              <iframe src="https://grafana.weatherstation.site/d/eexavbf1ivqwwb/f-index-data?orgId=2&theme=dark&from=now-10m&to=now&timezone=browser&refresh=10s&viewPanel=1" allowfullscreen></iframe>
+            </div>
+          </section>
+        </div>
       </div>
     </section>
   </main>
 
   <script>
-    // ---------- Tabs ----------
+    // Measure header for full-height summary
+    function setHeaderHeight(){
+      const h = document.querySelector('header')?.offsetHeight || 64;
+      document.documentElement.style.setProperty('--header-h', h + 'px');
+    }
+    window.addEventListener('load', setHeaderHeight);
+    window.addEventListener('resize', setHeaderHeight);
+
+    // Tabs
     const tabs = [...document.querySelectorAll('.tab')];
     const panels = {
       'tab-dash': document.getElementById('panel-dash'),
@@ -253,25 +325,25 @@
       Object.entries(panels).forEach(([id, panel])=>{
         panel.dataset.active = (id === tabId) ? 'true' : 'false';
       });
-      if (pushHash) location.hash = tabId === 'tab-summary' ? '#summary' : '#dashboards';
+      if (pushHash) location.hash = (tabId === 'tab-summary') ? '#summary' : '#dashboards';
+      setHeaderHeight();
     }
     document.addEventListener('click', (e)=>{
       const t = e.target.closest('.tab');
       if (t) activateTab(t.id);
     });
-    // Deep-linking with hash (#summary / #dashboards)
     window.addEventListener('hashchange', ()=>{
       const h = location.hash.toLowerCase();
-      if (h.includes('summary')) activateTab('tab-summary', false);
-      else if (h.includes('dash')) activateTab('tab-dash', false);
+      if (h.includes('dash')) activateTab('tab-dash', false);
+      else if (h.includes('summary')) activateTab('tab-summary', false);
     });
     (function initTabs(){
       const h = location.hash.toLowerCase();
-      if (h.includes('summary')) activateTab('tab-summary', false);
-      else activateTab('tab-dash', false);
+      if (h.includes('dash')) activateTab('tab-dash', false);
+      else activateTab('tab-summary'); // default: Summary
     })();
 
-    // ---------- Collapsible sections (Dashboards) ----------
+    // Collapsible sections (Dashboards)
     document.addEventListener('click', (e)=>{
       const bar = e.target.closest('.sectionbar');
       if (bar) {
@@ -283,16 +355,16 @@
       }
     });
 
-    // ---------- Fullscreen per box ----------
-    function toggleFullscreen(box){
-      if (!document.fullscreenElement) box.requestFullscreen().catch(()=>{});
+    // Fullscreen per card/box
+    function toggleFullscreen(el){
+      if (!document.fullscreenElement) el.requestFullscreen().catch(()=>{});
       else document.exitFullscreen().catch(()=>{});
     }
     document.addEventListener('click', (e)=>{
       const fs = e.target.closest('.fs-btn');
       if (fs) {
-        const box = fs.closest('.box');
-        if (box) toggleFullscreen(box);
+        const host = fs.closest('.box, .card');   // supports .box and .card
+        if (host) toggleFullscreen(host);
       }
     });
     function syncFsButtons(){
@@ -303,7 +375,7 @@
     }
     document.addEventListener('fullscreenchange', syncFsButtons);
 
-    // ---------- Grafana URL normalization ----------
+    // Grafana URL normalization
     function normalizeGrafanaUrl(src, desiredTheme){
       try{
         const u = new URL(src);
@@ -325,7 +397,7 @@
       });
     }
 
-    // ---------- Theme handling ----------
+    // Theme handling
     const themeBtn = document.getElementById('themeToggle');
     function applyTheme(mode){
       document.body.classList.toggle('light', mode === 'light');
