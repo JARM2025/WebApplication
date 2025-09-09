@@ -15,31 +15,34 @@
       --bg:#0b0f19; --fg:#e6e9ef; --card:#111727; --border:rgba(255,255,255,.12);
       --header-h:64px;
       --gap:12px;
+
+      /* Summary min height (mobile-first friendly, already +20%) */
+      --summary-min-h: 384px; /* desktop default (was 320px) */
+
       /* default box heights (Details) */
-      --box-h:70vh;        /* card/box body height */
+      --box-h:70vh;                 /* card/box body height */
       --frame-h:calc(var(--box-h) - 36px); /* minus header */
+
       /* Tabs (dark) */
       --tab-bg: rgba(255,255,255,.02);
       --tab-hover-border: rgba(255,255,255,.35);
       --tab-selected-bg: rgba(255,255,255,.16);
       --tab-selected-border: rgba(255,255,255,.55);
       --tab-selected-fg: var(--fg);
-    
-      --summary-min-h: 384px;
     }
     body.light{
       --bg:#f7f8fb; --fg:#0b0f1d; --card:#ffffff; --border:rgba(0,0,0,.15);
       /* Tabs (light): stronger visual distinction */
       --tab-bg: rgba(0,0,0,.05);
       --tab-hover-border: rgba(0,0,0,.45);
-      --tab-selected-bg: #e8edf6;                 /* noticeable pill */
-      --tab-selected-border: rgba(0,0,0,.55);     /* darker border */
-      --tab-selected-fg: #0b0f1d;                 /* dark text */
+      --tab-selected-bg: #e8edf6;
+      --tab-selected-border: rgba(0,0,0,.55);
+      --tab-selected-fg: #0b0f1d;
     }
 
     *{ box-sizing:border-box }
     html, body { height:100%; }
-    html{ scroll-padding-top: var(--header-h); } /* avoid sticky header covering anchors */
+    html{ scroll-padding-top: var(--header-h); }
     body{
       margin:0; background:var(--bg); color:var(--fg);
       font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
@@ -114,6 +117,8 @@
       height:36px; padding:6px 10px; border-bottom:1px solid var(--border); background:rgba(0,0,0,.08);
     }
     .box-head .title{ font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+    /* Mobile-friendly Fullscreen button */
     .fs-btn{
       display:inline-grid; place-items:center;
       width:34px; height:32px; padding:0;
@@ -129,27 +134,36 @@
       outline:2px solid currentColor;
       outline-offset:2px;
     }
+
     .frame{ height:var(--frame-h); position:relative; }
     iframe{ width:100%; height:100%; border:0; display:block; }
 
-    .box:fullscreen{ border:none; border-radius:0; height:100dvh; background:var(--card); }
+    /* Fullscreen containers (centered on mobile, safe areas) */
+    .box:fullscreen{
+      border:none; border-radius:0;
+      width:100dvw; height:100dvh; margin:0;
+      background:var(--card);
+      padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+      display:grid; grid-template-rows: 1fr;
+    }
     .box:fullscreen .box-head{ display:none; }
-    .box:fullscreen .frame{ height:100dvh; }
+    .box:fullscreen .frame{ height:100%; width:100%; display:flex; align-items:center; justify-content:center; }
+    .box:fullscreen .frame iframe{ width:100%; height:100%; max-width:100%; max-height:100%; display:block; }
 
     /* Summary: full-window grid */
     .summary-wrap{
-      height: calc(100dvh - var(--header-h)); /* fill viewport minus header */
+      height: calc(100dvh - var(--header-h));
       padding: 8px 12px;
     }
     .summary-grid{
       display:grid; gap:var(--gap); height:100%;
-      grid-template-columns: 1fr 1fr;        /* 2 columns default */
-      grid-template-rows: repeat(2, minmax(var(--summary-min-h), 1fr));           /* 2 rows default */
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: repeat(2, minmax(var(--summary-min-h), 1fr));
     }
     .card{
       border:1px solid var(--border); background:var(--card); border-radius:14px;
       box-shadow:0 1px 0 rgba(255,255,255,.03), 0 6px 18px rgba(0,0,0,.3);
-      overflow:hidden; display:flex; flex-direction:column; min-height:0;
+      overflow:hidden; display:flex; flex-direction:column; min-height: var(--summary-min-h);
     }
     .card-head{
       padding:8px 10px; font-weight:600; border-bottom:1px solid var(--border); opacity:.9; font-size:13px;
@@ -158,56 +172,18 @@
     .card-body{ flex:1; min-height:0; }
     .card-body iframe{ width:100%; height:100%; display:block; }
 
-    /* Fullscreen behavior for cards (mirror .box) */
-    .card:fullscreen{ border:none; border-radius:0; height:100dvh; background:var(--card); }
+    .card:fullscreen{
+      border:none; border-radius:0;
+      width:100dvw; height:100dvh; margin:0;
+      background:var(--card);
+      padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+      display:grid; grid-template-rows: 1fr;
+    }
     .card:fullscreen .card-head{ display:none; }
-    .card:fullscreen .card-body{ height:100dvh; }
-    .card:fullscreen .card-body iframe{ height:100dvh; }
+    .card:fullscreen .card-body{ height:100%; width:100%; display:flex; align-items:center; justify-content:center; }
+    .card:fullscreen .card-body iframe{ width:100%; height:100%; max-width:100%; max-height:100%; display:block; }
 
-    /* Fallback overlay for iframes (simple error message only) */
-    .iframe-fallback{
-      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
-      background:linear-gradient(0deg, rgba(0,0,0,.45), rgba(0,0,0,.45));
-      color:#fff; padding:16px; text-align:center;
-    }
-    .iframe-fallback .msg{
-      font:600 14px "Inter",system-ui,sans-serif; opacity:.95;
-    }
-
-    /* Tab panels visibility */
-    [role="tabpanel"]{ display:none; }
-    [role="tabpanel"][data-active="true"]{ display:block; }
-
-    /* ===================== RESPONSIVE ===================== */
-    /* Laptops/medium: let rows auto-size, keep 2 columns */
-    @media (max-width: 1100px){
-      .summary-grid{
-        grid-template-rows: repeat(2, minmax(var(--summary-min-h), 1fr));
-        grid-auto-rows: minmax(var(--summary-min-h), 1fr);
-      }
-      :root{ --box-h: 62vh; --frame-h: calc(var(--box-h) - 36px); }
-    }
-
-    /* Tablets: still two columns, shorter boxes */
-    @media (max-width: 900px){
-      :root{ --box-h: 56vh; --frame-h: calc(var(--box-h) - 36px);  --summary-min-h: 336px;}
-    }
-
-    /* Phones: single column Summary, shorter boxes in Details */
-    @media (max-width: 700px){
-      .summary-grid{ grid-template-columns: 1fr; grid-auto-rows: minmax(var(--summary-min-h), 48dvh); }
-      .card{ min-height: var(--summary-min-h); }
-      :root{ --box-h: 52vh; --frame-h: calc(var(--box-h) - 36px); }
-    }
-
-    /* Very small phones */
-    @media (max-width: 480px){
-      :root{ --box-h: 46vh; --frame-h: calc(var(--box-h) - 36px); --gap: 10px;  --summary-min-h: 312px;}
-      header h1{ font-size:16px; }
-      .tab{ padding:5px 10px; font-size:12px; }
-    }
-
-    /* ===== Exit Fullscreen overlay (LEFT) ===== */
+    /* Exit Fullscreen chip (left) */
     .fs-exit{
       position:fixed; top:14px; left:14px; z-index:1000;
       background: rgba(17,24,39,.85); color:#fff;
@@ -218,18 +194,55 @@
     }
     .fs-exit:hover{ filter: brightness(1.05); }
 
-    /* Respect reduced motion */
-    @media (prefers-reduced-motion: reduce){
-      * { animation: none !important; transition: none !important; }
-    }
-  
+    /* Tab panels visibility */
+    [role="tabpanel"]{ display:none; }
+    [role="tabpanel"][data-active="true"]{ display:block; }
+
+    /* Extra styles for SVG icon & SR-only text */
     .fs-btn svg{ width:18px; height:18px; display:block; }
+    .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,1px,1px); white-space:nowrap; border:0; }
+
+    /* ===================== RESPONSIVE ===================== */
+    /* Laptops/medium */
+    @media (max-width: 1100px){
+      .summary-grid{
+        grid-template-rows: unset;
+        grid-auto-rows: minmax(var(--summary-min-h), 1fr);
+      }
+      :root{ --summary-min-h: 360px; } /* was 300px, now 20% more */
+      :root{ --box-h: 62vh; --frame-h: calc(var(--box-h) - 36px); }
+    }
+
+    /* Tablets */
+    @media (max-width: 900px){
+      :root{ --summary-min-h: 336px; } /* was 280px, now 20% more */
+      :root{ --box-h: 56vh; --frame-h: calc(var(--box-h) - 36px); }
+    }
+
+    /* Phones: single column Summary */
     @media (max-width: 700px){
+      .summary-grid{
+        grid-template-columns: 1fr;
+        grid-auto-rows: minmax(var(--summary-min-h), 48dvh);
+      }
+      .card{ min-height: var(--summary-min-h); }
+      :root{ --summary-min-h: 336px; } /* was 280px, now 20% more */
+      :root{ --box-h: 52vh; --frame-h: calc(var(--box-h) - 36px); }
       .fs-btn{ width:40px; height:36px; border-radius:12px; }
       .fs-btn svg{ width:20px; height:20px; }
     }
-    .sr-only{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,1px,1px); white-space:nowrap; border:0; }
 
+    /* Very small phones */
+    @media (max-width: 480px){
+      :root{ --summary-min-h: 312px; } /* was 260px, now 20% more */
+      :root{ --box-h: 46vh; --frame-h: calc(var(--box-h) - 36px); --gap: 10px; }
+      header h1{ font-size:16px; }
+      .tab{ padding:5px 10px; font-size:12px; }
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      * { animation: none !important; transition: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -347,6 +360,7 @@
               <button class="fs-btn" title="Fullscreen">⤢</button>
             </div>
             <div class="card-body">
+              <!-- d-solo to hide 3-dot menu; keep your defaults -->
               <iframe title="F Index" src="https://grafana.weatherstation.site/d-solo/aexeli5nf9uyoe/f-index?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&panelId=1" allowfullscreen></iframe>
             </div>
           </section>
@@ -404,7 +418,6 @@
       tabs.forEach(t=>{
         const selected = (t.id === tabId);
         t.setAttribute('aria-selected', selected ? 'true' : 'false');
-        // Keep focus in sync with selection
         if (selected) t.focus({preventScroll:true});
       });
       Object.entries(panels).forEach(([id, panel])=>{
@@ -413,12 +426,10 @@
       if (pushHash) location.hash = (tabId === 'tab-summary') ? '#summary' : '#details';
       setHeaderHeight();
     }
-    // Mouse/Touch activation
     document.addEventListener('click', (e)=>{
       const t = e.target.closest('.tab');
       if (t) activateTab(t.id);
     });
-    // Hash routing
     window.addEventListener('hashchange', ()=>{
       const h = location.hash.toLowerCase();
       if (h.includes('detail')) activateTab('tab-details', false);
@@ -429,7 +440,6 @@
       if (h.includes('detail')) activateTab('tab-details', false);
       else activateTab('tab-summary'); // default: Summary
     })();
-    // Keyboard navigation for tabs (ArrowLeft/ArrowRight/Home/End)
     const tablist = document.getElementById('tablist');
     function moveFocus(idxDelta){
       const i = tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
@@ -447,44 +457,16 @@
       }
     });
 
-    // Collapsible sections (Details) with accessibility + persistence
-    function storageKeyFor(targetId){ return `ws_collapsed_${targetId}`; }
-    function restoreSectionState(){
-      document.querySelectorAll('.sectionbar').forEach(bar=>{
-        // Make focusable and operable by keyboard
-        bar.setAttribute('role','button');
-        bar.setAttribute('tabindex','0');
-
-        const targetId = bar.dataset.target;
-        const target = document.getElementById(targetId);
-        if (!target) return;
-        const saved = localStorage.getItem(storageKeyFor(targetId));
-        if (saved === 'true'){ // collapsed
-          target.style.display = 'none';
-          bar.setAttribute('aria-expanded','false');
-        } else if (saved === 'false'){ // expanded
-          target.style.display = '';
-          bar.setAttribute('aria-expanded','true');
-        }
-      });
-    }
-    function toggleSection(bar){
-      const targetId = bar.dataset.target;
-      const target = document.getElementById(targetId);
-      if (!target) return;
-      const willShow = target.style.display === 'none';
-      target.style.display = willShow ? '' : 'none';
-      bar.setAttribute('aria-expanded', willShow ? 'true' : 'false');
-      try { localStorage.setItem(storageKeyFor(targetId), (!willShow).toString()); } catch {}
-    }
+    // Collapsible sections (Details)
     document.addEventListener('click', (e)=>{
       const bar = e.target.closest('.sectionbar');
-      if (bar) toggleSection(bar);
-    });
-    document.addEventListener('keydown', (e)=>{
-      const bar = e.target.closest('.sectionbar');
-      if (!bar) return;
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSection(bar); }
+      if (bar) {
+        const target = document.getElementById(bar.dataset.target);
+        if (!target) return;
+        const willShow = target.style.display === 'none';
+        target.style.display = willShow ? '' : 'none';
+        bar.setAttribute('aria-expanded', willShow ? 'true' : 'false');
+      }
     });
 
     // Fullscreen per card/box
@@ -511,7 +493,6 @@
       btn.textContent = '✕ Exit Fullscreen';
       btn.addEventListener('click', ()=> document.exitFullscreen().catch(()=>{}));
       host.appendChild(btn);
-      // Put keyboard focus on the exit button to give an immediate way out
       setTimeout(()=> btn.focus(), 0);
     }
     function removeFsExitBtns(){
@@ -522,10 +503,27 @@
       document.querySelectorAll('.fs-btn').forEach(btn=>{
         btn.title = isFS ? 'Exit fullscreen (Esc)' : 'Fullscreen';
       });
-      if (isFS) ensureFsExitBtn(document.fullscreenElement);
-      else removeFsExitBtns();
+      if (isFS) {
+        try { window.scrollTo({top:0, left:0, behavior:'auto'}); } catch(e){}
+        ensureFsExitBtn(document.fullscreenElement);
+      } else {
+        removeFsExitBtns();
+      }
     }
     document.addEventListener('fullscreenchange', syncFsButtons);
+
+    // Enhance Fullscreen buttons for consistent mobile rendering (replace glyph with SVG)
+    function enhanceFsButtons() {
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>`;
+      document.querySelectorAll('.fs-btn').forEach(btn => {
+        if (!btn.getAttribute('aria-label')) btn.setAttribute('aria-label', 'Fullscreen');
+        if (btn.dataset.enhanced === '1') return;
+        btn.dataset.enhanced = '1';
+        btn.innerHTML = `${svg}<span class="sr-only">Fullscreen</span>`;
+      });
+    }
 
     // Grafana URL normalization (preserves your defaults; forces kiosk&fullscreen)
     function normalizeGrafanaUrl(src, desiredTheme){
@@ -546,49 +544,6 @@
       document.querySelectorAll('iframe').forEach(f=>{
         const next = normalizeGrafanaUrl(f.src, themeMode);
         if (next !== f.src) f.src = next;
-      });
-    }
-
-    // Iframe fallback overlay if load stalls (simple error message; no actions)
-    function attachIframeFallback(iframe, timeoutMs = 9000){
-      if (!iframe) return;
-      let done = false;
-      const frameWrap = iframe.parentElement; // .frame or .card-body
-      let overlay = null;
-
-      const showOverlay = () => {
-        if (done || overlay) return;
-        overlay = document.createElement('div');
-        overlay.className = 'iframe-fallback';
-        const msg = document.createElement('div');
-        msg.className = 'msg';
-        msg.textContent = 'Error loading panel. Please try again later.';
-        overlay.appendChild(msg);
-        frameWrap.appendChild(overlay);
-      };
-
-      const t = setTimeout(showOverlay, timeoutMs);
-
-      iframe.addEventListener('load', () => {
-        done = true;
-        clearTimeout(t);
-        overlay?.remove();
-      }, { once: true });
-    }
-
-    
-    // Enhance Fullscreen buttons for consistent mobile rendering (replace glyph with SVG)
-    function enhanceFsButtons() {
-      document.querySelectorAll('.fs-btn').forEach(btn => {
-        // Keep title updates from existing logic; just ensure accessible label
-        if (!btn.getAttribute('aria-label')) btn.setAttribute('aria-label', 'Fullscreen');
-        // Avoid double-initialization
-        if (btn.dataset.enhanced === '1') return;
-        btn.dataset.enhanced = '1';
-        // Replace inner content with an SVG icon + screen-reader-only text
-        btn.innerHTML = `<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" aria-hidden=\"true\">
-  <path d=\"M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>
-</svg><span class="sr-only">Fullscreen</span>`;
       });
     }
 
@@ -614,9 +569,8 @@
       applyTheme(next);
     });
 
-    // Initialize: restore section states and attach iframe fallbacks
-    restoreSectionState();
-    document.querySelectorAll('iframe').forEach(f => attachIframeFallback(f));
+    // Initialize
+    setHeaderHeight();
     enhanceFsButtons();
   </script>
 </body>
