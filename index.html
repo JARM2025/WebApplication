@@ -24,6 +24,8 @@
       --tab-selected-bg: rgba(255,255,255,.16);
       --tab-selected-border: rgba(255,255,255,.55);
       --tab-selected-fg: var(--fg);
+    
+      --summary-min-h: 320px;
     }
     body.light{
       --bg:#f7f8fb; --fg:#0b0f1d; --card:#ffffff; --border:rgba(0,0,0,.15);
@@ -142,7 +144,7 @@
     .summary-grid{
       display:grid; gap:var(--gap); height:100%;
       grid-template-columns: 1fr 1fr;        /* 2 columns default */
-      grid-template-rows: 1fr 1fr;           /* 2 rows default */
+      grid-template-rows: repeat(2, minmax(var(--summary-min-h), 1fr));           /* 2 rows default */
     }
     .card{
       border:1px solid var(--border); background:var(--card); border-radius:14px;
@@ -180,27 +182,27 @@
     /* Laptops/medium: let rows auto-size, keep 2 columns */
     @media (max-width: 1100px){
       .summary-grid{
-        grid-template-rows: unset;
-        grid-auto-rows: minmax(260px, 1fr);
+        grid-template-rows: repeat(2, minmax(var(--summary-min-h), 1fr));
+        grid-auto-rows: minmax(var(--summary-min-h), 1fr);
       }
       :root{ --box-h: 62vh; --frame-h: calc(var(--box-h) - 36px); }
     }
 
     /* Tablets: still two columns, shorter boxes */
     @media (max-width: 900px){
-      :root{ --box-h: 56vh; --frame-h: calc(var(--box-h) - 36px); }
+      :root{ --box-h: 56vh; --frame-h: calc(var(--box-h) - 36px);  --summary-min-h: 280px;}
     }
 
     /* Phones: single column Summary, shorter boxes in Details */
     @media (max-width: 700px){
-      .summary-grid{ grid-template-columns: 1fr; grid-auto-rows: minmax(220px, 42dvh); }
-      .card{ min-height: 0; }
+      .summary-grid{ grid-template-columns: 1fr; grid-auto-rows: minmax(var(--summary-min-h), 48dvh); }
+      .card{ min-height: var(--summary-min-h); }
       :root{ --box-h: 52vh; --frame-h: calc(var(--box-h) - 36px); }
     }
 
     /* Very small phones */
     @media (max-width: 480px){
-      :root{ --box-h: 46vh; --frame-h: calc(var(--box-h) - 36px); --gap: 10px; }
+      :root{ --box-h: 46vh; --frame-h: calc(var(--box-h) - 36px); --gap: 10px;  --summary-min-h: 260px;}
       header h1{ font-size:16px; }
       .tab{ padding:5px 10px; font-size:12px; }
     }
