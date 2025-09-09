@@ -37,6 +37,7 @@
 
     *{ box-sizing:border-box }
     html, body { height:100%; }
+    html{ scroll-padding-top: var(--header-h); } /* avoid sticky header covering anchors */
     body{
       margin:0; background:var(--bg); color:var(--fg);
       font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
@@ -91,6 +92,10 @@
       cursor:pointer; user-select:none; transition: background .15s ease, color .15s ease;
     }
     .sectionbar:hover{ background:rgba(255,255,255,.04); }
+    .sectionbar:focus-visible{
+      outline:2px solid currentColor;
+      outline-offset:2px;
+    }
     .sectionbar h2{ margin:0; font:700 18px "Inter",system-ui,sans-serif; text-align:center; position:relative; }
     .sectionbar h2::after{ content:"▾"; font-size:14px; margin-left:10px; opacity:.6; }
     .sectionbar[aria-expanded="false"] h2::after{ content:"▸"; }
@@ -112,7 +117,11 @@
       border-radius:8px; padding:4px 8px; font:600 12px "Inter",system-ui,sans-serif; cursor:pointer;
     }
     .fs-btn:hover{ border-color:rgba(100,100,100,.4) }
-    .frame{ height:var(--frame-h); }
+    .fs-btn:focus-visible{
+      outline:2px solid currentColor;
+      outline-offset:2px;
+    }
+    .frame{ height:var(--frame-h); position:relative; }
     iframe{ width:100%; height:100%; border:0; display:block; }
 
     .box:fullscreen{ border:none; border-radius:0; height:100dvh; background:var(--card); }
@@ -147,6 +156,16 @@
     .card:fullscreen .card-body{ height:100dvh; }
     .card:fullscreen .card-body iframe{ height:100dvh; }
 
+    /* Fallback overlay for iframes (simple error message only) */
+    .iframe-fallback{
+      position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+      background:linear-gradient(0deg, rgba(0,0,0,.45), rgba(0,0,0,.45));
+      color:#fff; padding:16px; text-align:center;
+    }
+    .iframe-fallback .msg{
+      font:600 14px "Inter",system-ui,sans-serif; opacity:.95;
+    }
+
     /* Tab panels visibility */
     [role="tabpanel"]{ display:none; }
     [role="tabpanel"][data-active="true"]{ display:block; }
@@ -179,6 +198,22 @@
       header h1{ font-size:16px; }
       .tab{ padding:5px 10px; font-size:12px; }
     }
+
+    /* ===== Exit Fullscreen overlay (LEFT) ===== */
+    .fs-exit{
+      position:fixed; top:14px; left:14px; z-index:1000;
+      background: rgba(17,24,39,.85); color:#fff;
+      border:1px solid rgba(255,255,255,.22);
+      padding:8px 12px; border-radius:10px; font:600 13px "Inter",system-ui,sans-serif;
+      box-shadow: 0 6px 16px rgba(0,0,0,.35);
+      cursor:pointer;
+    }
+    .fs-exit:hover{ filter: brightness(1.05); }
+
+    /* Respect reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      * { animation: none !important; transition: none !important; }
+    }
   </style>
 </head>
 <body>
@@ -187,7 +222,7 @@
     <div class="spacer"></div>
 
     <!-- Tabs: Summary first, Details second -->
-    <div class="tabs" role="tablist" aria-label="Views">
+    <div class="tabs" role="tablist" aria-label="Views" aria-orientation="horizontal" id="tablist">
       <button class="tab" role="tab" id="tab-summary" aria-controls="panel-summary" aria-selected="true">Summary</button>
       <button class="tab" role="tab" id="tab-details" aria-controls="panel-details" aria-selected="false">Details</button>
     </div>
@@ -210,7 +245,7 @@
               <button class="fs-btn" title="Fullscreen">⤢</button>
             </div>
             <div class="frame">
-              <iframe src="https://grafana.weatherstation.site/d/aexavp9st0d8gf/f-index-values?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&viewPanel=1" allowfullscreen></iframe>
+              <iframe title="F Index — Last Value" src="https://grafana.weatherstation.site/d/aexavp9st0d8gf/f-index-values?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&viewPanel=1" allowfullscreen></iframe>
             </div>
           </div>
         </div>
@@ -221,7 +256,7 @@
               <button class="fs-btn" title="Fullscreen">⤢</button>
             </div>
             <div class="frame">
-              <iframe src="https://grafana.weatherstation.site/d/eexavbf1ivqwwb/f-index-data?orgId=2&theme=dark&from=now-5m&to=now%2B5m&timezone=browser&refresh=5s&viewPanel=1" allowfullscreen></iframe>
+              <iframe title="F Index — Historical Data" src="https://grafana.weatherstation.site/d/eexavbf1ivqwwb/f-index-data?orgId=2&theme=dark&from=now-5m&to=now%2B5m&timezone=browser&refresh=5s&viewPanel=1" allowfullscreen></iframe>
             </div>
           </div>
         </div>
@@ -239,7 +274,7 @@
               <button class="fs-btn" title="Fullscreen">⤢</button>
             </div>
             <div class="frame">
-              <iframe src="https://grafana.weatherstation.site/d/cewx3uhpyrsowa/dht22-1-values?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&viewPanel=1" allowfullscreen></iframe>
+              <iframe title="Sensor 1 — Last Value" src="https://grafana.weatherstation.site/d/cewx3uhpyrsowa/dht22-1-values?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&viewPanel=1" allowfullscreen></iframe>
             </div>
           </div>
         </div>
@@ -250,7 +285,7 @@
               <button class="fs-btn" title="Fullscreen">⤢</button>
             </div>
             <div class="frame">
-              <iframe src="https://grafana.weatherstation.site/d/aewvz2fwevpc0c/dht22-1-data?orgId=2&theme=dark&from=now-5m&to=now%2B5m&timezone=browser&refresh=5s&viewPanel=1" allowfullscreen></iframe>
+              <iframe title="Sensor 1 — Historical Data" src="https://grafana.weatherstation.site/d/aewvz2fwevpc0c/dht22-1-data?orgId=2&theme=dark&from=now-5m&to=now%2B5m&timezone=browser&refresh=5s&viewPanel=1" allowfullscreen></iframe>
             </div>
           </div>
         </div>
@@ -268,7 +303,7 @@
               <button class="fs-btn" title="Fullscreen">⤢</button>
             </div>
             <div class="frame">
-              <iframe src="https://grafana.weatherstation.site/d/dexaqaus59w5ca/anemometer-values?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&viewPanel=1" allowfullscreen></iframe>
+              <iframe title="Sensor 2 — Last Value" src="https://grafana.weatherstation.site/d/dexaqaus59w5ca/anemometer-values?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&viewPanel=1" allowfullscreen></iframe>
             </div>
           </div>
         </div>
@@ -279,7 +314,7 @@
               <button class="fs-btn" title="Fullscreen">⤢</button>
             </div>
             <div class="frame">
-              <iframe src="https://grafana.weatherstation.site/d/dexan9rr3s3k0b/anemometer-data?orgId=2&theme=dark&from=now-5m&to=now%2B5m&timezone=browser&refresh=5s&viewPanel=1" allowfullscreen></iframe>
+              <iframe title="Sensor 2 — Historical Data" src="https://grafana.weatherstation.site/d/dexan9rr3s3k0b/anemometer-data?orgId=2&theme=dark&from=now-5m&to=now%2B5m&timezone=browser&refresh=5s&viewPanel=1" allowfullscreen></iframe>
             </div>
           </div>
         </div>
@@ -296,7 +331,7 @@
               <button class="fs-btn" title="Fullscreen">⤢</button>
             </div>
             <div class="card-body">
-              <iframe src="https://grafana.weatherstation.site/d/aexeli5nf9uyoe/f-index?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&viewPanel=panel-1" allowfullscreen></iframe>
+              <iframe title="F Index" src="https://grafana.weatherstation.site/d/aexeli5nf9uyoe/f-index?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&viewPanel=panel-1" allowfullscreen></iframe>
             </div>
           </section>
 
@@ -306,7 +341,7 @@
               <button class="fs-btn" title="Fullscreen">⤢</button>
             </div>
             <div class="card-body">
-              <iframe src="https://grafana.weatherstation.site/d/dexdt525kcf7kc/temperature?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&viewPanel=1" allowfullscreen></iframe>
+              <iframe title="Temperature" src="https://grafana.weatherstation.site/d/dexdt525kcf7kc/temperature?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&viewPanel=1" allowfullscreen></iframe>
             </div>
           </section>
 
@@ -316,7 +351,7 @@
               <button class="fs-btn" title="Fullscreen">⤢</button>
             </div>
             <div class="card-body">
-              <iframe src="https://grafana.weatherstation.site/d/cexesd7aohzwgf/humidity?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&viewPanel=panel-1" allowfullscreen></iframe>
+              <iframe title="Humidity" src="https://grafana.weatherstation.site/d/cexesd7aohzwgf/humidity?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&viewPanel=panel-1" allowfullscreen></iframe>
             </div>
           </section>
 
@@ -326,7 +361,7 @@
               <button class="fs-btn" title="Fullscreen">⤢</button>
             </div>
             <div class="card-body">
-              <iframe src="https://grafana.weatherstation.site/d/bexev0z3n203kc/wind-speed?orgId=2&from=now-5m&to=now&timezone=browser&refresh=5s&viewPanel=panel-1&kiosk=tv" allowfullscreen></iframe>
+              <iframe title="Wind Speed" src="https://grafana.weatherstation.site/d/bexev0z3n203kc/wind-speed?orgId=2&from=now-5m&to=now&timezone=browser&refresh=5s&viewPanel=panel-1&kiosk=tv" allowfullscreen></iframe>
             </div>
           </section>
         </div>
@@ -353,6 +388,8 @@
       tabs.forEach(t=>{
         const selected = (t.id === tabId);
         t.setAttribute('aria-selected', selected ? 'true' : 'false');
+        // Keep focus in sync with selection
+        if (selected) t.focus({preventScroll:true});
       });
       Object.entries(panels).forEach(([id, panel])=>{
         panel.dataset.active = (id === tabId) ? 'true' : 'false';
@@ -360,10 +397,12 @@
       if (pushHash) location.hash = (tabId === 'tab-summary') ? '#summary' : '#details';
       setHeaderHeight();
     }
+    // Mouse/Touch activation
     document.addEventListener('click', (e)=>{
       const t = e.target.closest('.tab');
       if (t) activateTab(t.id);
     });
+    // Hash routing
     window.addEventListener('hashchange', ()=>{
       const h = location.hash.toLowerCase();
       if (h.includes('detail')) activateTab('tab-details', false);
@@ -374,17 +413,62 @@
       if (h.includes('detail')) activateTab('tab-details', false);
       else activateTab('tab-summary'); // default: Summary
     })();
+    // Keyboard navigation for tabs (ArrowLeft/ArrowRight/Home/End)
+    const tablist = document.getElementById('tablist');
+    function moveFocus(idxDelta){
+      const i = tabs.findIndex(t => t.getAttribute('aria-selected') === 'true');
+      let j = i + idxDelta;
+      if (j < 0) j = tabs.length - 1;
+      if (j >= tabs.length) j = 0;
+      activateTab(tabs[j].id);
+    }
+    tablist?.addEventListener('keydown', (e)=>{
+      switch(e.key){
+        case 'ArrowLeft': e.preventDefault(); moveFocus(-1); break;
+        case 'ArrowRight': e.preventDefault(); moveFocus(1); break;
+        case 'Home': e.preventDefault(); activateTab(tabs[0].id); break;
+        case 'End': e.preventDefault(); activateTab(tabs[tabs.length-1].id); break;
+      }
+    });
 
-    // Collapsible sections (Details)
+    // Collapsible sections (Details) with accessibility + persistence
+    function storageKeyFor(targetId){ return `ws_collapsed_${targetId}`; }
+    function restoreSectionState(){
+      document.querySelectorAll('.sectionbar').forEach(bar=>{
+        // Make focusable and operable by keyboard
+        bar.setAttribute('role','button');
+        bar.setAttribute('tabindex','0');
+
+        const targetId = bar.dataset.target;
+        const target = document.getElementById(targetId);
+        if (!target) return;
+        const saved = localStorage.getItem(storageKeyFor(targetId));
+        if (saved === 'true'){ // collapsed
+          target.style.display = 'none';
+          bar.setAttribute('aria-expanded','false');
+        } else if (saved === 'false'){ // expanded
+          target.style.display = '';
+          bar.setAttribute('aria-expanded','true');
+        }
+      });
+    }
+    function toggleSection(bar){
+      const targetId = bar.dataset.target;
+      const target = document.getElementById(targetId);
+      if (!target) return;
+      const willShow = target.style.display === 'none';
+      target.style.display = willShow ? '' : 'none';
+      bar.setAttribute('aria-expanded', willShow ? 'true' : 'false');
+      try { localStorage.setItem(storageKeyFor(targetId), (!willShow).toString()); } catch {}
+    }
     document.addEventListener('click', (e)=>{
       const bar = e.target.closest('.sectionbar');
-      if (bar) {
-        const target = document.getElementById(bar.dataset.target);
-        if (!target) return;
-        const willShow = target.style.display === 'none';
-        target.style.display = willShow ? '' : 'none';
-        bar.setAttribute('aria-expanded', willShow ? 'true' : 'false');
-      }
+      if (bar) toggleSection(bar);
+    });
+    document.addEventListener('keydown', (e)=>{
+      const bar = e.target.closest('.sectionbar');
+      if (!bar) return;
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSection(bar); }
     });
 
     // Fullscreen per card/box
@@ -399,15 +483,35 @@
         if (host) toggleFullscreen(host);
       }
     });
+
+    // Exit Fullscreen overlay (left) + focus on enter
+    function ensureFsExitBtn(host){
+      if (!host) return;
+      if (host.querySelector('.fs-exit')) return;
+      const btn = document.createElement('button');
+      btn.className = 'fs-exit';
+      btn.type = 'button';
+      btn.setAttribute('aria-label', 'Exit fullscreen');
+      btn.textContent = '✕ Exit Fullscreen';
+      btn.addEventListener('click', ()=> document.exitFullscreen().catch(()=>{}));
+      host.appendChild(btn);
+      // Put keyboard focus on the exit button to give an immediate way out
+      setTimeout(()=> btn.focus(), 0);
+    }
+    function removeFsExitBtns(){
+      document.querySelectorAll('.fs-exit').forEach(b=> b.remove());
+    }
     function syncFsButtons(){
       const isFS = !!document.fullscreenElement;
       document.querySelectorAll('.fs-btn').forEach(btn=>{
         btn.title = isFS ? 'Exit fullscreen (Esc)' : 'Fullscreen';
       });
+      if (isFS) ensureFsExitBtn(document.fullscreenElement);
+      else removeFsExitBtns();
     }
     document.addEventListener('fullscreenchange', syncFsButtons);
 
-    // Grafana URL normalization
+    // Grafana URL normalization (preserves your defaults; forces kiosk&fullscreen)
     function normalizeGrafanaUrl(src, desiredTheme){
       try{
         const u = new URL(src);
@@ -427,6 +531,33 @@
         const next = normalizeGrafanaUrl(f.src, themeMode);
         if (next !== f.src) f.src = next;
       });
+    }
+
+    // Iframe fallback overlay if load stalls (simple error message; no actions)
+    function attachIframeFallback(iframe, timeoutMs = 9000){
+      if (!iframe) return;
+      let done = false;
+      const frameWrap = iframe.parentElement; // .frame or .card-body
+      let overlay = null;
+
+      const showOverlay = () => {
+        if (done || overlay) return;
+        overlay = document.createElement('div');
+        overlay.className = 'iframe-fallback';
+        const msg = document.createElement('div');
+        msg.className = 'msg';
+        msg.textContent = 'Error loading panel. Please try again later.';
+        overlay.appendChild(msg);
+        frameWrap.appendChild(overlay);
+      };
+
+      const t = setTimeout(showOverlay, timeoutMs);
+
+      iframe.addEventListener('load', () => {
+        done = true;
+        clearTimeout(t);
+        overlay?.remove();
+      }, { once: true });
     }
 
     // Theme handling
@@ -450,6 +581,10 @@
       const next = document.body.classList.contains('light') ? 'dark' : 'light';
       applyTheme(next);
     });
+
+    // Initialize: restore section states and attach iframe fallbacks
+    restoreSectionState();
+    document.querySelectorAll('iframe').forEach(f => attachIframeFallback(f));
   </script>
 </body>
 </html>
