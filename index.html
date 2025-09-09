@@ -25,7 +25,7 @@
       --tab-selected-border: rgba(255,255,255,.55);
       --tab-selected-fg: var(--fg);
     
-      --summary-min-h: 320px;
+      --summary-min-h: 384px;
     }
     body.light{
       --bg:#f7f8fb; --fg:#0b0f1d; --card:#ffffff; --border:rgba(0,0,0,.15);
@@ -190,7 +190,7 @@
 
     /* Tablets: still two columns, shorter boxes */
     @media (max-width: 900px){
-      :root{ --box-h: 56vh; --frame-h: calc(var(--box-h) - 36px);  --summary-min-h: 280px;}
+      :root{ --box-h: 56vh; --frame-h: calc(var(--box-h) - 36px);  --summary-min-h: 336px;}
     }
 
     /* Phones: single column Summary, shorter boxes in Details */
@@ -202,7 +202,7 @@
 
     /* Very small phones */
     @media (max-width: 480px){
-      :root{ --box-h: 46vh; --frame-h: calc(var(--box-h) - 36px); --gap: 10px;  --summary-min-h: 260px;}
+      :root{ --box-h: 46vh; --frame-h: calc(var(--box-h) - 36px); --gap: 10px;  --summary-min-h: 312px;}
       header h1{ font-size:16px; }
       .tab{ padding:5px 10px; font-size:12px; }
     }
