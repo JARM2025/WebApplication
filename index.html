@@ -16,7 +16,7 @@
       --header-h:64px;
       --gap:12px;
 
-      /* Summary min height (mobile-first friendly, already +20%) */
+      /* Summary min height (already +20%) */
       --summary-min-h: 384px; /* desktop default (was 320px) */
 
       /* default box heights (Details) */
@@ -32,7 +32,7 @@
     }
     body.light{
       --bg:#f7f8fb; --fg:#0b0f1d; --card:#ffffff; --border:rgba(0,0,0,.15);
-      /* Tabs (light): stronger visual distinction */
+      /* Tabs (light) */
       --tab-bg: rgba(0,0,0,.05);
       --tab-hover-border: rgba(0,0,0,.45);
       --tab-selected-bg: #e8edf6;
@@ -118,7 +118,7 @@
     }
     .box-head .title{ font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
-    /* Mobile-friendly Fullscreen button */
+    /* Mobile/desktop-friendly Fullscreen button */
     .fs-btn{
       display:inline-grid; place-items:center;
       width:34px; height:32px; padding:0;
@@ -138,17 +138,33 @@
     .frame{ height:var(--frame-h); position:relative; }
     iframe{ width:100%; height:100%; border:0; display:block; }
 
-    /* Fullscreen containers (centered on mobile, safe areas) */
-    .box:fullscreen{
+    /* Fullscreen containers (centered on ALL devices, with safe-area padding) */
+    .box:fullscreen,
+    .card:fullscreen{
       border:none; border-radius:0;
       width:100dvw; height:100dvh; margin:0;
       background:var(--card);
-      padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
+      padding: env(safe-area-inset-top, 0px)
+               env(safe-area-inset-right, 0px)
+               env(safe-area-inset-bottom, 0px)
+               env(safe-area-inset-left, 0px);
       display:grid; grid-template-rows: 1fr;
     }
-    .box:fullscreen .box-head{ display:none; }
-    .box:fullscreen .frame{ height:100%; width:100%; display:flex; align-items:center; justify-content:center; }
-    .box:fullscreen .frame iframe{ width:100%; height:100%; max-width:100%; max-height:100%; display:block; }
+    .box:fullscreen .box-head,
+    .card:fullscreen .card-head{ display:none; }
+
+    /* Center the visible panel area in fullscreen */
+    .box:fullscreen .frame,
+    .card:fullscreen .card-body{
+      height:100%; width:100%;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .box:fullscreen .frame iframe,
+    .card:fullscreen .card-body iframe{
+      width:100%; height:100%;
+      max-width:100%; max-height:100%;
+      display:block;
+    }
 
     /* Summary: full-window grid */
     .summary-wrap{
@@ -171,17 +187,6 @@
     }
     .card-body{ flex:1; min-height:0; }
     .card-body iframe{ width:100%; height:100%; display:block; }
-
-    .card:fullscreen{
-      border:none; border-radius:0;
-      width:100dvw; height:100dvh; margin:0;
-      background:var(--card);
-      padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
-      display:grid; grid-template-rows: 1fr;
-    }
-    .card:fullscreen .card-head{ display:none; }
-    .card:fullscreen .card-body{ height:100%; width:100%; display:flex; align-items:center; justify-content:center; }
-    .card:fullscreen .card-body iframe{ width:100%; height:100%; max-width:100%; max-height:100%; display:block; }
 
     /* Exit Fullscreen chip (left) */
     .fs-exit{
@@ -512,7 +517,7 @@
     }
     document.addEventListener('fullscreenchange', syncFsButtons);
 
-    // Enhance Fullscreen buttons for consistent mobile rendering (replace glyph with SVG)
+    // Enhance Fullscreen buttons for consistent rendering (replace glyph with SVG)
     function enhanceFsButtons() {
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
         <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
