@@ -347,7 +347,8 @@
               <button class="fs-btn" title="Fullscreen">⤢</button>
             </div>
             <div class="card-body">
-              <iframe title="F Index" src="https://grafana.weatherstation.site/d-solo/aexeli5nf9uyoe/f-index?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&panelId=1" allowfullscreen></iframe>
+              <!-- Ruta /d/ como en tu versión que funcionaba + kiosk=tv -->
+              <iframe title="F Index" src="https://grafana.weatherstation.site/d/aexeli5nf9uyoe/f-index?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&viewPanel=panel-1&kiosk=1" allowfullscreen></iframe>
             </div>
           </section>
 
@@ -357,7 +358,7 @@
               <button class="fs-btn" title="Fullscreen">⤢</button>
             </div>
             <div class="card-body">
-              <iframe title="Temperature" src="https://grafana.weatherstation.site/d-solo/dexdt525kcf7kc/temperature?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&panelId=1" allowfullscreen></iframe>
+              <iframe title="Temperature" src="https://grafana.weatherstation.site/d/dexdt525kcf7kc/temperature?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&viewPanel=1&kiosk=1" allowfullscreen></iframe>
             </div>
           </section>
 
@@ -367,7 +368,7 @@
               <button class="fs-btn" title="Fullscreen">⤢</button>
             </div>
             <div class="card-body">
-              <iframe title="Humidity" src="https://grafana.weatherstation.site/d-solo/cexesd7aohzwgf/humidity?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&panelId=1" allowfullscreen></iframe>
+              <iframe title="Humidity" src="https://grafana.weatherstation.site/d/cexesd7aohzwgf/humidity?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&viewPanel=panel-1&kiosk=1" allowfullscreen></iframe>
             </div>
           </section>
 
@@ -377,7 +378,7 @@
               <button class="fs-btn" title="Fullscreen">⤢</button>
             </div>
             <div class="card-body">
-              <iframe title="Wind Speed" src="https://grafana.weatherstation.site/d-solo/bexev0z3n203kc/wind-speed?orgId=2&from=now-5m&to=now&timezone=browser&refresh=5s&panelId=1" allowfullscreen></iframe>
+              <iframe title="Wind Speed" src="https://grafana.weatherstation.site/d/bexev0z3n203kc/wind-speed?orgId=2&theme=dark&from=now-5m&to=now&timezone=browser&refresh=5s&viewPanel=panel-1&kiosk=1" allowfullscreen></iframe>
             </div>
           </section>
         </div>
@@ -528,6 +529,7 @@
     document.addEventListener('fullscreenchange', syncFsButtons);
 
     // Grafana URL normalization (preserves your defaults; forces kiosk&fullscreen)
+    // ⛔️ Solo afecta iframes de DETAILS (para no tocar SUMMARY)
     function normalizeGrafanaUrl(src, desiredTheme){
       try{
         const u = new URL(src);
@@ -543,7 +545,7 @@
       }catch(e){ return src; }
     }
     function normalizeAllIframes(themeMode){
-      document.querySelectorAll('iframe').forEach(f=>{
+      document.querySelectorAll('#panel-details iframe').forEach(f=>{
         const next = normalizeGrafanaUrl(f.src, themeMode);
         if (next !== f.src) f.src = next;
       });
@@ -580,14 +582,11 @@
     // Enhance Fullscreen buttons for consistent mobile rendering (replace glyph with SVG)
     function enhanceFsButtons() {
       document.querySelectorAll('.fs-btn').forEach(btn => {
-        // Keep title updates from existing logic; just ensure accessible label
         if (!btn.getAttribute('aria-label')) btn.setAttribute('aria-label', 'Fullscreen');
-        // Avoid double-initialization
         if (btn.dataset.enhanced === '1') return;
         btn.dataset.enhanced = '1';
-        // Replace inner content with an SVG icon + screen-reader-only text
-        btn.innerHTML = `<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 24 24\" aria-hidden=\"true\">
-  <path d=\"M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>
+        btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg><span class="sr-only">Fullscreen</span>`;
       });
     }
@@ -597,7 +596,7 @@
     function applyTheme(mode){
       document.body.classList.toggle('light', mode === 'light');
       themeBtn.textContent = mode === 'light' ? '☀️ Light Mode' : '🌙 Dark Mode';
-      normalizeAllIframes(mode);
+      normalizeAllIframes(mode); // solo DETAILS
       try { localStorage.setItem('ws_theme', mode); } catch {}
     }
     (function initTheme(){
