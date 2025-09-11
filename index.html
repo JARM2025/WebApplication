@@ -578,7 +578,6 @@
       }, { once: true });
     }
 
-    
     // Enhance Fullscreen buttons for consistent mobile rendering (replace glyph with SVG)
     function enhanceFsButtons() {
       document.querySelectorAll('.fs-btn').forEach(btn => {
@@ -591,12 +590,33 @@
       });
     }
 
+    // ===== NEW: Actualiza el theme en TODOS los iframes (Summary + Details) =====
+    function updateAllIframesTheme(mode){
+      document.querySelectorAll('iframe').forEach(f=>{
+        try{
+          const u = new URL(f.src);
+          const cur = (u.searchParams.get('theme') || '').toLowerCase();
+          if (cur !== mode){
+            u.searchParams.set('theme', mode);
+            u.searchParams.set('_ts', Date.now()); // cache-buster opcional
+            f.src = u.toString();
+          }
+        }catch{}
+      });
+    }
+
     // Theme handling
     const themeBtn = document.getElementById('themeToggle');
     function applyTheme(mode){
       document.body.classList.toggle('light', mode === 'light');
       themeBtn.textContent = mode === 'light' ? '☀️ Light Mode' : '🌙 Dark Mode';
-      normalizeAllIframes(mode); // solo DETAILS
+
+      // ① Cambia el tema de TODOS los iframes (Summary + Details)
+      updateAllIframesTheme(mode);
+
+      // ② Mantén la normalización especial solo para Details (kiosk&fullscreen)
+      normalizeAllIframes(mode);
+
       try { localStorage.setItem('ws_theme', mode); } catch {}
     }
     (function initTheme(){
